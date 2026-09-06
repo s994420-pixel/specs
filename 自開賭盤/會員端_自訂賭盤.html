@@ -1,0 +1,2595 @@
+﻿<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>會員端 - 自訂盤口</title>
+  <style>
+    :root {
+      --bg: #080725;
+      --panel: #151a22;
+      --panel-2: #20242c;
+      --panel-3: #2d2b3a;
+      --line: rgba(255,255,255,.08);
+      --text: #f3f7ff;
+      --muted: #8f9cad;
+      --orange: #ff5a10;
+      --orange-2: #d83312;
+      --green: #21d85a;
+      --red: #ff3f45;
+      --blue: #4b37a3;
+      --yellow: #ffd42a;
+      --shadow: 0 16px 42px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      letter-spacing: 0;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 204px minmax(0, 1fr);
+      background: radial-gradient(circle at 18% 8%, rgba(83,35,175,.42), transparent 28%), var(--bg);
+    }
+
+    .sidebar {
+      padding: 0 14px 28px;
+      background: linear-gradient(180deg, #07061f 0%, #12112d 100%);
+      border-right: 1px solid var(--line);
+    }
+
+    .brand {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .menu-icon { font-size: 22px; color: #dfe7ff; }
+    .side-card {
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 6px;
+      padding: 10px 0;
+      margin-bottom: 14px;
+    }
+
+    .side-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 42px;
+      padding: 0 18px;
+      color: #d7deef;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .side-item.active {
+      margin: 0 8px;
+      border-radius: 9px;
+      background: linear-gradient(90deg, var(--orange), rgba(255,90,16,.28));
+      color: #fff;
+    }
+
+    .main { min-width: 0; }
+    .topbar {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      background: #06051d;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .top-title {
+      font-size: 13px;
+      color: #d7deef;
+      max-width: 180px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .pill {
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 7px;
+      color: #edf2ff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .deposit {
+      height: 34px;
+      border: 0;
+      border-radius: 7px;
+      padding: 0 18px;
+      background: linear-gradient(180deg, #ff7119, #e23c08);
+      color: #fff;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(255,90,16,.28);
+    }
+
+    .user { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; }
+    .user:before { content: ""; width: 18px; height: 18px; border-radius: 50%; background: var(--orange); display: inline-block; }
+
+    .content {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px 18px 60px;
+    }
+
+    .navline {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding-bottom: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      border-bottom: 1px solid var(--line);
+      overflow: visible;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .navline button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 0;
+      white-space: nowrap;
+    }
+    .navline button.active { color: #fff; }
+
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin: 22px 0 14px;
+    }
+
+    h1 { margin: 0; font-size: 30px; line-height: 1.1; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+    .tools { display: flex; align-items: center; gap: 10px; }
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      color: #cdd7e6;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 18px;
+    }
+
+    .tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 12px 4px;
+      font-size: 14px;
+      font-weight: 900;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab.active { color: #fff; border-bottom-color: #fff; }
+
+    .primary-tabs {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 12px;
+    }
+
+    .primary-tabs button {
+      height: 48px;
+      border: 0;
+      border-bottom: 3px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 950;
+    }
+
+    .primary-tabs button.active {
+      color: #fff;
+      border-bottom-color: #fff;
+    }
+
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .seg {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(255,255,255,.03);
+    }
+
+    .seg button {
+      min-width: 70px;
+      height: 38px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: transparent;
+      color: #b7c2d4;
+      font-weight: 900;
+    }
+
+    .seg button:last-child { border-right: 0; }
+    .seg button.active { background: var(--orange); color: #fff; }
+
+    .field {
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      color: #fff;
+      padding: 0 12px;
+      min-width: 150px;
+      font-weight: 800;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238f9cad' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+      cursor: pointer;
+    }
+
+    .field option {
+      background: #151922;
+      color: #eef4ff;
+      font-weight: 800;
+    }
+
+    .search {
+      flex: 1;
+      min-width: 220px;
+      position: relative;
+    }
+
+    .search input {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      color: #fff;
+      padding: 0 14px 0 38px;
+      outline: none;
+    }
+
+    .search span { position: absolute; left: 13px; top: 9px; color: var(--muted); }
+
+    .tool-toggle {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      color: #dbe6f7;
+      font-size: 16px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tool-toggle.active {
+      background: rgba(255,90,16,.18);
+      border-color: rgba(255,90,16,.55);
+      color: #fff;
+    }
+
+    .dropdown-filter {
+      position: relative;
+      flex: none;
+    }
+
+    .filter-pill {
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      padding: 0 13px;
+      font-size: 12px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .filter-pill:after {
+      content: "⌄";
+      color: #aeb9ca;
+      font-size: 11px;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      left: 0;
+      top: 40px;
+      min-width: 168px;
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px;
+      background: #151922;
+      box-shadow: var(--shadow);
+      z-index: 50;
+      display: grid;
+      gap: 3px;
+    }
+
+    .dropdown-menu button {
+      height: 34px;
+      width: 100%;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: #dbe6f7;
+      text-align: left;
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dropdown-menu button:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .dropdown-menu button.active:after { content: "•"; color: #1da1ff; font-size: 18px; line-height: 1; }.market-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .market-card {
+      background: #1b2027;
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 13px;
+      padding: 14px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.16);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .market-card .card-header { flex-shrink: 0; }
+    .market-card .card-foot   { flex-shrink: 0; margin-top: auto; }
+    .market-card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .market-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .market-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      background: linear-gradient(135deg, #ff8a19, #ff4a08);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 950;
+      overflow: hidden;
+    }
+
+    .market-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .market-title {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 950;
+      line-height: 1.35;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 6px;
+      background: rgba(255,90,16,.16);
+      color: #ff8b55;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .options { display: grid; gap: 8px; margin-bottom: 12px; }
+    .option-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      min-height: 30px;
+      padding: 5px 0;
+      cursor: pointer;
+    }
+
+    .option-row:hover .option-name,
+    .option-row:hover .odd { color: #fff; }
+
+    .option-name {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      padding: 0;
+      background: transparent;
+      color: #d8e1f0;
+      font-size: 13px;
+      font-weight: 900;
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .option-name.red { color: #d8e1f0; }
+    .odd { text-align: right; font-size: 14px; font-weight: 950; color: #eef4ff; white-space: nowrap; }
+    .people { text-align: right; font-size: 12px; font-weight: 900; color: var(--muted); }
+    .odd-change {
+      text-align: right;
+      font-size: 11px;
+      font-weight: 950;
+      color: var(--green);
+    }
+
+    .odd-change.down { color: #ff696e; }
+
+    .option-percent {
+      text-align: right;
+      font-size: 13px;
+      font-weight: 950;
+      color: #dbe6f7;
+    }
+
+    .quick-bet {
+      height: 28px;
+      border: 0;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 950;
+      color: #32df75;
+      background: rgba(33,216,90,.18);
+    }
+
+    .modal-opt {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 9px;
+      background: rgba(255,255,255,.03);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 900;
+      color: #c8d5e8;
+      transition: border-color .15s, background .15s;
+    }
+    .modal-opt:hover { background: rgba(255,255,255,.07); }
+    .modal-opt.selected { border-color: var(--orange); background: rgba(255,90,16,.1); color: #fff; box-shadow: inset 3px 0 0 var(--orange); }
+    .modal-opt-odd { font-size: 14px; font-weight: 950; color: #eef4ff; }
+    .modal-opt.selected .modal-opt-odd { color: #ffb07a; }
+
+    /* 題型標注（企劃用，非正式 UI） */
+    .mode-tag {
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      display: inline-flex;
+      align-items: center;
+      height: 18px;
+      padding: 0 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+      letter-spacing: .3px;
+      border: 1px dashed;
+      opacity: .85;
+    }
+    .mode-tag.yesno  { background: #0d1f15; border-color: #3de87a; color: #3de87a; }
+    .mode-tag.multi  { background: #1f1800; border-color: #ffc84a; color: #ffc84a; }
+    .mode-tag.judge  { background: #0d1428; border-color: #7eaaff; color: #7eaaff; }
+    .mode-tag.versus { background: #1f0d0d; border-color: #ff8888; color: #ff8888; }
+
+    .market-card { position: relative; overflow: visible; }
+
+    /* 投注分佈浮層（點擊眼睛 icon 觸發） */
+    .card-hover-preview {
+      position: absolute;
+      top: 0;
+      left: calc(100% + 10px);
+      width: 190px;
+      background: #1a1f2b;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 12px 36px rgba(0,0,0,.55);
+      z-index: 20;
+      display: none;
+      pointer-events: auto;
+    }
+    .card-hover-preview.visible {
+      display: block;
+    }
+    .hover-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: #eef4ff;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .gauge-wrap {
+      position: relative;
+      width: 100px;
+      height: 56px;
+      margin: 0 auto 6px;
+      overflow: hidden;
+    }
+    .gauge-wrap svg { width: 100px; height: 100px; margin-top: -2px; }
+    .gauge-pct {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 950;
+      color: #fff;
+    }
+    .gauge-label {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .hover-bar-row {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) 32px;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 5px;
+    }
+    .hover-bar-wrap {
+      height: 22px;
+      border-radius: 5px;
+      overflow: hidden;
+      background: rgba(255,255,255,.06);
+      position: relative;
+    }
+    .hover-bar-fill {
+      position: absolute;
+      left:0;top:0;bottom:0;
+      border-radius: 5px;
+    }
+    .hover-bar-name {
+      position: absolute;
+      left: 7px; top: 0; bottom: 0;
+      display: flex; align-items: center;
+      font-size: 11px; font-weight: 900; color: #fff;
+    }
+    .hover-bar-pct { font-size: 11px; font-weight: 950; color: #eef4ff; text-align: right; }
+
+    /* 眼睛按鈕（查看投注分佈） */
+    .fav-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px;
+      line-height: 1;
+      color: rgba(255,255,255,.35);
+      transition: color .15s, transform .15s;
+    }
+    .fav-btn:hover  { color: rgba(255,255,255,.7); }
+    .fav-btn.active { color: #f03e4d; }
+    .fav-btn.active:hover { color: #e02535; }
+
+    .eye-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 3px;
+      line-height: 1;
+      border-radius: 5px;
+      color: rgba(255,255,255,.38);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color .15s, background .15s;
+    }
+    .eye-btn:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.07); }
+    .eye-btn.active { color: #7eaaff; background: rgba(126,170,255,.12); }
+
+    /* 浮層改為點擊觸發，預設隱藏 */
+    .card-hover-preview {
+      display: none;
+    }
+    .card-hover-preview.visible {
+      display: block;
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .rank-list, .ticket-table {
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .rank-row {
+      display: grid;
+      grid-template-columns: 40px minmax(0,1fr) 110px 110px;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 900;
+    }
+
+    .rank-row:last-child { border-bottom: 0; }
+    .rank-head {
+      min-height: 42px;
+      color: var(--muted);
+      background: rgba(255,255,255,.03);
+      font-size: 12px;
+    }
+
+    .rank-num { font-size: 14px; font-weight: 950; color: var(--muted); }
+    .rank-num.top1 { color: #ffd42a; }
+    .rank-num.top2 { color: #c0c0c0; }
+    .rank-num.top3 { color: #cd7f32; }
+
+    .rank-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 950; flex-shrink: 0;
+    }
+
+    .rank-user { display: flex; align-items: center; gap: 10px; }
+    .rank-name { font-size: 13px; font-weight: 900; color: #eef4ff; }
+    .rank-you  { font-size: 10px; font-weight: 900; color: var(--orange); background: rgba(255,90,16,.15); border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
+
+    .rank-profit { text-align: right; font-size: 14px; font-weight: 950; color: var(--green); }
+    .rank-vol    { text-align: right; font-size: 13px; font-weight: 800; color: var(--muted); }
+
+    .winner-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .winner-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 950; flex-shrink: 0;
+    }
+    .winner-info { flex: 1; min-width: 0; }
+    .winner-name { font-size: 12px; font-weight: 900; color: #eef4ff; }
+    .winner-profit { font-size: 12px; font-weight: 950; color: var(--green); margin-top: 2px; }
+
+    .tickets {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .tickets th, .tickets td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .tickets th { color: var(--muted); background: rgba(255,255,255,.03); font-size: 12px; }
+    .tickets tr:nth-child(even) td { background: rgba(255,255,255,.03); }
+    .ticket-filter {
+      display: grid;
+      grid-template-columns: 1.45fr 1.35fr .85fr .85fr .8fr;
+      gap: 10px;
+      align-items: end;
+      padding: 14px;
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,.025);
+    }
+
+    .ticket-filter-block {
+      min-width: 0;
+    }
+
+    .ticket-filter-label {
+      margin-bottom: 7px;
+      color: #91a3c4;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .ticket-date-range {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) 16px minmax(0,1fr);
+      gap: 8px;
+      align-items: center;
+    }
+
+    .ticket-date-sep {
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .ticket-filter-input,
+    .ticket-filter-select {
+      width: 100%;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      color: #eef4ff;
+      padding: 0 11px;
+      outline: none;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .ticket-filter-input::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      opacity: .7;
+    }
+
+    .ticket-filter-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238f9cad' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 11px center;
+      padding-right: 30px;
+    }
+
+    .ticket-filter-select option {
+      background: #151922;
+      color: #eef4ff;
+    }
+
+    .quick-range {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 6px;
+    }
+
+    .quick-range button {
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      color: #aebce0;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .quick-range button.active {
+      border-color: rgba(255,90,16,.65);
+      background: rgba(255,90,16,.18);
+      color: #fff;
+    }
+
+    .ticket-empty-row td {
+      padding: 24px 14px;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 900;
+    }
+    .overview-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .overview-currency {
+      width: 112px;
+      height: 32px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      background-color: rgba(255,255,255,.05);
+      color: #eef4ff;
+      padding: 0 28px 0 10px;
+      font-size: 12px;
+      font-weight: 900;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238f9cad' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .overview-currency option {
+      background: #151922;
+      color: #eef4ff;
+    }
+
+    .overview-dist {
+      display: grid;
+      gap: 8px;
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: rgba(33,216,90,.14);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .status.running { background: rgba(77,171,247,.14); color: #74c0fc; }
+    .status.wait { background: rgba(255,212,42,.12); color: var(--yellow); }
+    .status.lost { background: rgba(255,63,69,.13); color: #ff7478; }
+    .status.cancel { background: rgba(143,156,173,.14); color: #b9c4d4; }
+    .status.refund { background: rgba(77,171,247,.14); color: #74c0fc; }
+    .status.void { background: rgba(167,139,250,.14); color: #c4b5fd; }
+
+    .hidden { display: none !important; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.62);
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.show { display: flex; }
+    .dialog {
+      width: min(920px, 96vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: #151922;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .dialog-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .dialog-title { font-size: 19px; font-weight: 950; line-height: 1.35; }
+    .close { border: 0; background: transparent; color: #fff; font-size: 24px; }
+    .dialog-body { padding: 20px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; }
+    .detail-box {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .bet-options { display: grid; gap: 10px; }
+    .choice {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+      color: #fff;
+      padding: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 900;
+    }
+
+    .choice.active { border-color: var(--orange); box-shadow: inset 3px 0 0 var(--orange); }
+    .amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+    .amount-grid button {
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .amount-input {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #080725;
+      color: #fff;
+      padding: 0 12px;
+      outline: none;
+      font-weight: 900;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .summary-line b { color: #fff; }
+    .confirm {
+      width: 100%;
+      height: 44px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #ff7119, #e23c08);
+      color: #fff;
+      font-weight: 950;
+    }
+
+    /* ── Card: 通用 header 區 ── */
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+    .card-header-text { flex: 1; min-width: 0; }
+    .card-title {
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.4;
+      color: #eef4ff;
+    }
+
+    /* ── 右上角百分比環 ── */
+    .pct-ring-wrap {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+    }
+    .pct-ring-wrap svg { width: 48px; height: 48px; transform: rotate(-90deg); }
+    .pct-ring-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 950;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .pct-ring-label small { font-size: 9px; color: var(--muted); font-weight: 800; }
+
+    /* ── yesno 大按鈕 ── */
+    .yn-btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 10px;
+    }
+    .yn-btn {
+      height: 38px;
+      border: 0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 950;
+      cursor: pointer;
+      transition: filter .15s;
+    }
+    .yn-btn:hover { filter: brightness(1.15); }
+    .yn-btn.yes { background: rgba(33,216,90,.22); color: #3de87a; }
+    .yn-btn.no  { background: rgba(160,20,20,.40); color: #ff7070; }
+
+    /* ── judge 列 ── */
+    .judge-row {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) 42px 32px 32px;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .judge-row:last-child { border-bottom: 0; }
+    .judge-label { font-size: 12px; font-weight: 800; color: #c8d5e8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .judge-pct   { font-size: 13px; font-weight: 950; color: #eef4ff; text-align: right; }
+    .judge-yes-btn, .judge-no-btn {
+      height: 24px;
+      border: 0;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 950;
+      cursor: pointer;
+    }
+    .judge-yes-btn { background: rgba(33,216,90,.22); color: #3de87a; }
+    .judge-no-btn  { background: rgba(160,20,20,.40); color: #ff7070; }
+
+    /* ── versus 列 ── */
+    .vs-row {
+      display: grid;
+      grid-template-columns: auto minmax(0,1fr) 40px;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      cursor: pointer;
+    }
+    .vs-row:hover .vs-name { color: #fff; }
+    .vs-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .vs-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .vs-name { font-size: 13px; font-weight: 900; color: #c8d5e8; }
+    .vs-pct  { font-size: 13px; font-weight: 950; color: #eef4ff; text-align: right; }
+    .vs-btn-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 6px;
+      margin: 8px 0 10px;
+    }
+    .vs-btn {
+      height: 34px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      background: rgba(255,255,255,.05);
+      color: #aabbd4;
+      font-size: 12px;
+      font-weight: 950;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .vs-btn:hover { background: rgba(255,255,255,.13); color: #fff; }
+    .vs-btn.team-a { background: rgba(59,110,255,.25); border-color: rgba(59,110,255,.4); color: #82aeff; }
+    .vs-btn.team-b { background: rgba(200,50,50,.25); border-color: rgba(200,50,50,.4); color: #ff9090; }
+
+    /* ── card footer 統一 ── */
+    .card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      margin-top: 4px;
+    }
+    .foot-actions { display: inline-flex; align-items: center; gap: 10px; color: #93a0b4; font-size: 13px; }
+    .mini-live { color: var(--red); font-weight: 950; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .market-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .dialog-body { grid-template-columns: 1fr; }
+      .ticket-filter { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+
+    @media (min-width: 981px) and (max-width: 1180px) {
+      .market-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      .top-title { display: none; }
+      .pill.balance { display: none; }
+      .market-grid { grid-template-columns: 1fr; }
+      .rank-row { grid-template-columns: 38px minmax(0,1fr) 78px 88px; }
+      .rank-row > div:nth-child(4) { display: none; }
+      .ticket-filter { grid-template-columns: 1fr; }
+      h1 { font-size: 25px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><span class="menu-icon">☰</span><span>Popular Prod...</span></div>
+      <div class="side-card">
+        <div class="side-item">會員中心</div>
+        <div class="side-item">存款</div>
+        <div class="side-item">出金</div>
+        <div class="side-item">歷史</div>
+        <div class="side-item">我的訊息</div>
+        <div class="side-item">VIP</div>
+      </div>
+      <div class="side-card">
+        <div class="side-item active">首頁</div>
+        <div class="side-item">SLOT</div>
+        <div class="side-item">CASINO</div>
+        <div class="side-item">Sport Events</div>
+        <div class="side-item">VSports</div>
+        <div class="side-item">Lottery</div>
+        <div class="side-item">P2P</div>
+        <div class="side-item">Others</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="top-title">Custom Predictions</div>
+        <div class="top-actions">
+          <div class="pill balance">🪙 103.2</div>
+          <div class="pill" id="currencyPill" style="cursor:pointer">CNY ▾</div>
+          <button class="deposit">存款</button>
+          <div class="user">raitest1</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="primary-tabs">
+          <button class="active" data-tab="markets">盤口</button>
+          <button data-tab="ranking">排行榜</button>
+          <button data-tab="tickets">我的注單</button>
+        </div>
+
+        <div class="navline" id="marketCategoryNav">
+          <button class="active" data-cat="全部">全部</button>
+          <button data-cat="突發">突發</button>
+          <button data-cat="政治">政治</button>
+          <button data-cat="運動">運動</button>
+          <button data-cat="加密">加密</button>
+          <button data-cat="電競">電競</button>
+          <button data-cat="金融">金融</button>
+          <button data-cat="選舉">選舉</button>
+        </div>
+
+        <section id="tab-markets">
+          <div class="filter-row">
+            <div class="search"><span>⌕</span><input id="marketSearchInput" placeholder="搜尋盤口名稱"></div>
+            <div class="dropdown-filter">
+              <button class="filter-pill" id="sortFilterLabel" data-menu="sortFilterMenu">↗ 24 小時交易量</button>
+              <div class="dropdown-menu hidden" id="sortFilterMenu">
+                <button class="active" data-filter="sort" data-value="volume24h" data-label="↗ 24 小時交易量">↗ 24 小時交易量</button>
+                <button data-filter="sort" data-value="totalVolume" data-label="♨ 總交易量">♨ 總交易量</button>
+                <button data-filter="sort" data-value="newest" data-label="◈ 最新發布">◈ 最新發布</button>
+                <button data-filter="sort" data-value="closing" data-label="◷ 即將封盤">◷ 即將封盤</button>
+              </div>
+            </div>
+            <div class="dropdown-filter">
+              <button class="filter-pill" id="statusFilterLabel" data-menu="statusFilterMenu">進行中</button>
+              <div class="dropdown-menu hidden" id="statusFilterMenu">
+                <button class="active" data-filter="status" data-value="open" data-label="進行中">進行中</button>
+                <button data-filter="status" data-value="settled" data-label="已封盤">已封盤</button>
+              </div>
+            </div>
+            <button class="tool-toggle" id="favoriteToggle" title="只看收藏">♡</button>
+          </div>
+
+          <div class="market-grid" id="marketGrid"></div>
+        </section>
+
+        <section id="tab-ranking" class="hidden">
+          <div class="filter-row">
+            <div class="seg" id="rankSegGroup">
+              <button class="active">今日</button>
+              <button>每週</button>
+              <button>每月</button>
+              <button>全部</button>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start">
+            <div>
+              <!-- 篩選列：分類 + 幣別 + 搜尋 -->
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+                <select class="field" id="rankCatFilter" style="min-width:110px;height:32px;font-size:12px">
+                  <option>全部分類</option><option>突發</option><option>政治</option><option>運動</option><option>加密</option><option>電競</option><option>金融</option><option>選舉</option>
+                </select>
+                <select class="field" id="rankCurrencyFilter" style="min-width:96px;height:32px;font-size:12px">
+                  <option value="USDT">USDT</option>
+                  <option value="IDR">IDR</option>
+                  <option value="CNY">CNY</option>
+                  <option value="VND">VND</option>
+                  <option value="THB">THB</option>
+                  <option value="MYR">MYR</option>
+                </select>
+                <!-- 排序切換 -->
+                <div class="seg" id="rankSortGroup" style="height:32px">
+                  <button class="active" data-sort="people" style="min-width:72px;height:32px;font-size:12px">下注人數</button>
+                  <button data-sort="vol" style="min-width:60px;height:32px;font-size:12px">交易量</button>
+                </div>
+                <div class="search" style="min-width:0;flex:1"><span>⌕</span><input placeholder="按名稱搜尋" id="rankSearchInput"></div>
+              </div>
+              <div class="rank-list" id="rankLeaderboard"></div>
+            </div>
+
+            <!-- 最高贏利側欄 -->
+            <div style="background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:10px;padding:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <div id="rankSideTitle" style="font-size:13px;font-weight:900;color:#eef4ff">🏆 今日最高贏利</div>
+                <select class="field" id="winnerCurrencyFilter" style="min-width:80px;height:28px;font-size:11px;padding:0 8px;padding-right:26px">
+                  <option value="USDT">USDT</option>
+                  <option value="IDR">IDR</option>
+                  <option value="CNY">CNY</option>
+                  <option value="VND">VND</option>
+                  <option value="THB">THB</option>
+                  <option value="MYR">MYR</option>
+                </select>
+              </div>
+              <div id="topWinnersList" style="display:grid;gap:10px"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-tickets" class="hidden">
+
+          <!-- 投注概況區塊 -->
+          <div id="overviewPanel" style="background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:12px;margin-bottom:16px;overflow:hidden">
+            <div id="overviewHeader" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none">
+              <span style="font-size:14px;font-weight:900;color:#eef4ff">📊 我的投注概況</span>
+              <span class="overview-actions">
+                <select class="overview-currency" id="overviewCurrencyFilter">
+                  <option value="CNY">CNY</option>
+                  <option value="USDT">USDT</option>
+                  <option value="MYR">MYR</option>
+                  <option value="IDR">IDR</option>
+                </select>
+                <span id="overviewChevron" style="color:var(--muted);font-size:18px;transition:transform .25s">⌄</span>
+              </span>
+            </div>
+            <div id="overviewBody" style="padding:0 18px 18px">
+              <!-- 四格指標 -->
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">
+                <div style="background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:14px">
+                  <div style="font-size:11px;font-weight:800;color:var(--muted);margin-bottom:6px">總投注額</div>
+                  <div id="overviewTotalBet" style="font-size:20px;font-weight:950;color:#eef4ff">1,800</div>
+                </div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:14px">
+                  <div style="font-size:11px;font-weight:800;color:var(--muted);margin-bottom:6px">已實現盈虧</div>
+                  <div id="overviewPnl" style="font-size:20px;font-weight:950;color:var(--green)">+270</div>
+                </div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:14px">
+                  <div style="font-size:11px;font-weight:800;color:var(--muted);margin-bottom:6px">注單勝率</div>
+                  <div id="overviewWinRate" style="font-size:20px;font-weight:950;color:#ffd42a">67%</div>
+                  <div id="overviewWinMeta" style="font-size:11px;color:var(--muted);margin-top:2px">1勝 / 2待結算</div>
+                </div>
+              </div>
+
+              <!-- 投注分佈 + 近期走勢 -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:14px">
+                  <div style="font-size:12px;font-weight:900;color:var(--muted);margin-bottom:12px">投注分類分佈</div>
+                  <div class="overview-dist" id="overviewDistribution"></div>
+                </div>
+
+                <div style="background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:14px">
+                  <div style="font-size:12px;font-weight:900;color:var(--muted);margin-bottom:12px">近 7 日盈虧走勢</div>
+                  <svg viewBox="0 0 240 80" style="width:100%;height:80px">
+                    <defs>
+                      <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#21d85a" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#21d85a" stop-opacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,60 L34,55 L68,65 L102,40 L136,45 L170,30 L204,20 L240,15" fill="none" stroke="#21d85a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M0,60 L34,55 L68,65 L102,40 L136,45 L170,30 L204,20 L240,15 L240,80 L0,80 Z" fill="url(#pnlGrad)"/>
+                    <text x="0" y="76" font-size="9" fill="#8f9cad" font-weight="800">8/20</text>
+                    <text x="200" y="76" font-size="9" fill="#8f9cad" font-weight="800">8/26</text>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 注單列表 -->
+          <div class="ticket-filter">
+            <div class="ticket-filter-block">
+              <div class="ticket-filter-label">時間區間</div>
+              <div class="ticket-date-range">
+                <input class="ticket-filter-input" id="ticketDateStart" type="date" value="2026-08-20">
+                <span class="ticket-date-sep">至</span>
+                <input class="ticket-filter-input" id="ticketDateEnd" type="date" value="2026-08-26">
+              </div>
+            </div>
+            <div class="ticket-filter-block">
+              <div class="ticket-filter-label">時間快捷</div>
+              <div class="quick-range" id="ticketQuickRange">
+                <button type="button" data-range="today">今日</button>
+                <button type="button" data-range="yesterday">昨天</button>
+                <button type="button" data-range="7">7天</button>
+                <button type="button" class="active" data-range="30">30天</button>
+              </div>
+            </div>
+            <div class="ticket-filter-block">
+              <div class="ticket-filter-label">分類</div>
+              <select class="ticket-filter-select" id="ticketCategoryFilter">
+                <option value="all">全部分類</option>
+                <option value="加密">加密</option>
+                <option value="突發">突發</option>
+                <option value="站內活動">站內活動</option>
+              </select>
+            </div>
+            <div class="ticket-filter-block">
+              <div class="ticket-filter-label">狀態</div>
+              <select class="ticket-filter-select" id="ticketStatusFilter">
+                <option value="all">全部狀態</option>
+                <option value="進行中">進行中</option>
+                <option value="待結算">待結算</option>
+                <option value="已派彩">已派彩</option>
+                <option value="未中獎">未中獎</option>
+                <option value="已取消">已取消</option>
+                <option value="已退款">已退款</option>
+                <option value="已作廢">已作廢</option>
+              </select>
+            </div>
+            <div class="ticket-filter-block">
+              <div class="ticket-filter-label">幣別</div>
+              <select class="ticket-filter-select" id="ticketCurrencyFilter">
+                <option value="all">全部幣別</option>
+                <option value="CNY">CNY</option>
+                <option value="USDT">USDT</option>
+                <option value="MYR">MYR</option>
+                <option value="IDR">IDR</option>
+              </select>
+            </div>
+          </div>
+          <div class="ticket-table">
+            <table class="tickets">
+              <thead>
+                <tr><th>注單編號</th><th>盤口名稱</th><th>投注選項</th><th>投注金額</th><th>幣別</th><th>賠率</th><th>狀態</th><th>派彩額度</th></tr>
+              </thead>
+              <tbody>
+                <tr data-date="2026-08-26" data-category="加密" data-status="進行中" data-currency="CNY"><td>CM202608260003</td><td>BTC 明日中午前是否突破 120,000？</td><td>是</td><td>500</td><td>CNY</td><td>1.65</td><td><span class="status running">進行中</span></td><td>--</td></tr>
+                <tr data-date="2026-08-25" data-category="加密" data-status="待結算" data-currency="CNY"><td>CM202608250001</td><td>BTC 明日中午前是否突破 120,000？</td><td>是</td><td>500</td><td>CNY</td><td>1.65</td><td><span class="status wait">待結算</span></td><td>825</td></tr>
+                <tr data-date="2026-08-24" data-category="突發" data-status="已派彩" data-currency="CNY"><td>CM202608240018</td><td>今晚直播抽獎是否會開出 iPhone？</td><td>否</td><td>300</td><td>CNY</td><td>1.90</td><td><span class="status">已派彩</span></td><td>570</td></tr>
+                <tr data-date="2026-08-23" data-category="站內活動" data-status="待結算" data-currency="CNY"><td>CM202608230044</td><td>下週新遊戲上線日期是否為週五？</td><td>是</td><td>1,000</td><td>CNY</td><td>1.66</td><td><span class="status wait">待結算</span></td><td>1,660</td></tr>
+                <tr data-date="2026-08-22" data-category="運動" data-status="未中獎" data-currency="USDT"><td>CM202608220027</td><td>Spurs vs Newcastle 誰會贏？</td><td>Spurs</td><td>80</td><td>USDT</td><td>1.77</td><td><span class="status lost">未中獎</span></td><td>0</td></tr>
+                <tr data-date="2026-08-21" data-category="金融" data-status="已取消" data-currency="MYR"><td>CM202608210013</td><td>美股今晚開盤後納指是否上漲？</td><td>上漲</td><td>200</td><td>MYR</td><td>1.87</td><td><span class="status cancel">已取消</span></td><td>0</td></tr>
+                <tr data-date="2026-08-20" data-category="電競" data-status="已退款" data-currency="IDR"><td>CM202608200092</td><td>今晚 LoL 決賽是否打滿五局？</td><td>不會</td><td>50,000</td><td>IDR</td><td>1.57</td><td><span class="status refund">已退款</span></td><td>50,000</td></tr>
+                <tr data-date="2026-08-19" data-category="政治" data-status="已作廢" data-currency="CNY"><td>CM202608190031</td><td>候選人下次公開亮相日期</td><td>週五</td><td>600</td><td>CNY</td><td>1.94</td><td><span class="status void">已作廢</span></td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="betModal">
+    <div class="dialog">
+      <div class="dialog-head">
+        <div>
+          <div class="dialog-title" id="modalTitle"></div>
+          <div class="sub">封盤倒數 01:26:45 · 基準幣 <span id="modalBaseCurrency">CNY</span> · 已成立注單鎖定下注當下賠率</div>
+        </div>
+        <button class="close" id="modalCloseBtn">×</button>
+      </div>
+      <div class="dialog-body">
+        <div class="detail-box">
+          <div class="sub" style="margin:0 0 12px">選擇投注選項</div>
+          <div id="modalOptionList" style="display:grid;gap:8px;margin-bottom:16px"></div>
+          <div class="summary-line"><span>鎖定賠率</span><b id="confirmOdd">1.65</b></div>
+          <div class="sub">確認送出後，注單會以送出當下賠率成立並鎖定。</div>
+        </div>
+        <div class="detail-box">
+          <div class="summary-line"><span>錢包餘額</span><b id="walletBalance">103.2 CNY</b></div>
+          <div class="summary-line"><span>投注幣別</span><b id="betCurrency">CNY</b></div>
+          <div class="amount-grid">
+            <button data-amount="100">100</button>
+            <button data-amount="500">500</button>
+            <button data-amount="1000">1,000</button>
+            <button data-amount="5000">5,000</button>
+          </div>
+          <input class="amount-input" id="amountInput" type="number" value="500" placeholder="輸入投注金額">
+          <div class="summary-line"><span>預估派彩</span><b id="payoutText">825 CNY</b></div>
+          <button class="confirm" id="confirmBetBtn">確認投注</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="successToast" style="position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);background:#1b2027;border:1px solid rgba(33,216,90,.4);border-radius:12px;padding:14px 22px;display:flex;align-items:center;gap:12px;z-index:100;opacity:0;transition:all .3s;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+    <span style="font-size:20px">✅</span>
+    <div>
+      <div style="font-size:13px;font-weight:900;color:#3de87a">注單成立！</div>
+      <div id="toastDesc" style="font-size:12px;color:#8f9cad;margin-top:2px"></div>
+    </div>
+    <button id="toastViewBtn" style="margin-left:12px;height:30px;padding:0 14px;border:0;border-radius:7px;background:rgba(33,216,90,.2);color:#3de87a;font-size:12px;font-weight:900;cursor:pointer">查看注單</button>
+  </div>
+
+  <script>
+    let currentOdd = 1.65;
+    let currentCurrency = 'CNY';
+    let memberCurrency = 'CNY';
+    let currentTopCategory = '全部';
+    let favoritesOnly = false;
+
+    // 收藏狀態集合：以盤口 title 為 key，跨渲染保持狀態
+    const favoritedTitles = new Set();
+
+    const WALLET_BALANCES = { CNY: '103.2', USDT: '14.2', MYR: '67.5', THB: '520.0', IDR: '225,000', VND: '350,000' };
+
+    function toggleCurrencyMenu(event) {
+      event.stopPropagation();
+      let menu = document.getElementById('currencyDropdown');
+      if (menu) { menu.remove(); return; }
+      menu = document.createElement('div');
+      menu.id = 'currencyDropdown';
+      menu.style.cssText = 'position:absolute;top:46px;right:80px;background:#151922;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;z-index:50;min-width:100px;box-shadow:0 16px 42px rgba(0,0,0,.35)';
+      ['CNY','USDT','MYR','THB','IDR','VND'].forEach(c => {
+        const btn = document.createElement('button');
+        btn.textContent = c;
+        btn.style.cssText = 'display:block;width:100%;height:34px;border:0;border-radius:7px;background:transparent;color:#dbe6f7;text-align:left;padding:0 10px;font-size:13px;font-weight:900;cursor:pointer';
+        if (c === memberCurrency) btn.style.color = '#ff7a30';
+        btn.onclick = () => { setMemberCurrency(c); menu.remove(); };
+        menu.appendChild(btn);
+      });
+      document.querySelector('.topbar').style.position = 'relative';
+      document.querySelector('.topbar').appendChild(menu);
+      document.addEventListener('click', () => menu.remove(), { once: true });
+    }
+
+    function setMemberCurrency(c) {
+      memberCurrency = c;
+      currentCurrency = c;
+      document.getElementById('currencyPill').textContent = c + ' ▾';
+      const bal = WALLET_BALANCES[c] || '—';
+      document.querySelector('.pill.balance').textContent = '🪙 ' + bal;
+    }
+    const marketFilters = {
+      sort: 'volume24h',
+      range: 'all',
+      status: 'open'
+    };
+
+    const OVERVIEW_DATA = {
+      CNY: {
+        total: '1,800',
+        pnl: '+270',
+        pnlPositive: true,
+        winRate: '67%',
+        meta: '1勝 / 2待結算',
+        dist: [
+          ['加密', '500', 28, '#7c4dff'],
+          ['突發', '300', 17, '#ff6b6b'],
+          ['其他', '1,000', 55, '#4dabf7'],
+        ]
+      },
+      USDT: {
+        total: '80',
+        pnl: '-80',
+        pnlPositive: false,
+        winRate: '0%',
+        meta: '0勝 / 1未中獎',
+        dist: [
+          ['運動', '80', 100, '#69db7c'],
+        ]
+      },
+      MYR: {
+        total: '200',
+        pnl: '0',
+        pnlPositive: true,
+        winRate: '0%',
+        meta: '0勝 / 1已取消',
+        dist: [
+          ['金融', '200', 100, '#ffd43b'],
+        ]
+      },
+      IDR: {
+        total: '50,000',
+        pnl: '0',
+        pnlPositive: true,
+        winRate: '0%',
+        meta: '0勝 / 1已退款',
+        dist: [
+          ['電競', '50,000', 100, '#f783ac'],
+        ]
+      }
+    };
+
+    const MARKET_DATA = {
+      '熱門': [
+        // yesno 單題雙選項型
+        { mode: 'yesno', title: 'BTC 明日中午前是否突破 120,000？', tag: '加密', currency: 'USDT', time: '01:26:45', favorite: true, image: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?auto=format&fit=crop&w=120&q=80', options: [['是', '1.65', '45'], ['否', '2.42', '18']] },
+        // yesno
+        { mode: 'yesno', title: '今晚直播抽獎是否會開出 iPhone？', tag: '突發', currency: 'USDT', time: '03:52:10', favorite: true, image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=120&q=80', options: [['是', '1.90', '45'], ['否', '1.90', '23']] },
+        // versus 對戰型
+        { mode: 'versus', title: 'Spurs vs Newcastle 誰會贏？', tag: '運動', currency: 'USDT', time: '06:18:12', options: [['Spurs', '1.77', '43', '⚽'], ['Newcastle', '2.16', '32', '⚽']], draw: ['DRAW', '3.20', '25'] },
+        // judge 主選項＋是/否判定型
+        { mode: 'judge', title: 'Anthropic 下一個神話級模型的發布日期？', tag: '加密', currency: 'USDT', time: '5天 02:16', options: [['10月31日', '1.66', '94'], ['9月30日', '2.38', '86']] },
+        // multi 多選一型
+        { mode: 'multi', title: '2026 美國男子網球公開賽冠軍？', tag: '運動', currency: 'USDT', time: '7天 18:30', image: 'https://images.unsplash.com/photo-1542144582-1ba00456b5e3?auto=format&fit=crop&w=120&q=80', options: [['阿爾卡拉斯', '2.80', '35', 0.16], ['辛納', '3.10', '28', -0.08], ['雷科維奇', '4.25', '18', 0.22]] },
+        // yesno
+        { mode: 'yesno', title: 'ETH 本週收盤價是否高於 4,000？', tag: '金融熱點', currency: 'USDT', time: '2天 14:18', image: 'https://images.unsplash.com/photo-1640161704729-cbe966a08476?auto=format&fit=crop&w=120&q=80', options: [['高於', '1.82', '41'], ['未高於', '2.10', '22']] },
+        // yesno
+        { mode: 'yesno', title: '週末站內充值人數能否突破 1,000 人？', tag: '突發', currency: 'IDR', time: '12:08:33', options: [['會', '1.75', '38'], ['不會', '2.28', '25']] },
+      ],
+      '突發': [
+        { mode: 'yesno', title: '今晚臨時維護是否會在 23:00 前結束？', tag: '突發', currency: 'USDT', time: '00:42:18', options: [['會', '1.58', '32'], ['不會', '2.55', '14']] },
+        { mode: 'yesno', title: '新遊戲加開活動是否會延長一天？', tag: '站內活動', currency: 'IDR', time: '02:16:09', options: [['延長', '1.88', '21'], ['不延長', '1.98', '19']] },
+        { mode: 'yesno', title: '今日熱門遊戲是否會突破 10,000 局？', tag: '突發', currency: 'MYR', time: '04:05:31', options: [['突破', '1.70', '28'], ['未突破', '2.18', '16']] }
+      ],
+      '最新': [
+        { mode: 'yesno', title: '週五新任務是否會開放雙倍獎勵？', tag: '最新', currency: 'USDT', time: '1天 00:20', options: [['是', '1.92', '8'], ['否', '1.86', '7']] },
+        { mode: 'yesno', title: '新上架遊戲首日下注額是否破 50,000？', tag: '最新', currency: 'THB', time: '1天 08:45', options: [['破', '2.06', '11'], ['未破', '1.78', '13']] },
+        { mode: 'yesno', title: '週末限定活動是否會提早開跑？', tag: '社群話題', currency: 'IDR', time: '2天 03:12', options: [['會', '1.68', '18'], ['不會', '2.22', '10']] }
+      ],
+      '政治': [
+        { mode: 'yesno', title: '本週政壇民調是否會出現領先互換？', tag: '政治', currency: 'USDT', time: '3天 11:40', options: [['會', '2.10', '16'], ['不會', '1.72', '24']] },
+        { mode: 'judge', title: '候選人下次公開亮相日期', tag: '政治', currency: 'MYR', time: '2天 19:06', options: [['週五', '1.94', '72'], ['週六', '1.84', '58']] }
+      ],
+      '運動': [
+        { mode: 'yesno', title: 'NBA 季後賽：湖人是否晉級？', tag: '運動', currency: 'USDT', time: '1天 14:02', options: [['晉級', '2.18', '16'], ['淘汰', '1.72', '25']] },
+        { mode: 'versus', title: 'Spurs vs Newcastle 誰會贏？', tag: '運動', currency: 'USDT', time: '06:18:12', options: [['Spurs', '1.77', '43', '⚽'], ['Newcastle', '2.16', '32', '⚽']], draw: ['DRAW', '3.20', '25'] },
+        { mode: 'multi', title: '2026 美國男子網球公開賽冠軍？', tag: '運動', currency: 'USDT', time: '7天 18:30', image: 'https://images.unsplash.com/photo-1542144582-1ba00456b5e3?auto=format&fit=crop&w=120&q=80', options: [['阿爾卡拉斯', '2.80', '35', 0.16], ['辛納', '3.10', '28', -0.08], ['雷科維奇', '4.25', '18', 0.22]] }
+      ],
+      '加密': [
+        { mode: 'yesno', title: 'BTC 明日中午前是否突破 120,000？', tag: '加密', currency: 'USDT', time: '01:26:45', options: [['是', '1.65', '45'], ['否', '2.42', '18']] },
+        { mode: 'yesno', title: 'ETH 本週收盤價是否高於 4,000？', tag: '加密', currency: 'USDT', time: '2天 14:18', options: [['高於', '1.82', '41'], ['未高於', '2.10', '22']] },
+        { mode: 'judge', title: 'Anthropic 下一個神話級模型的發布日期？', tag: '加密', currency: 'USDT', time: '5天 02:16', options: [['10月31日', '1.66', '94'], ['9月30日', '2.38', '86']] },
+        { mode: 'yesno', title: 'SOL 今日漲幅是否突破 8%？', tag: '加密', currency: 'USDT', time: '11:44:51', options: [['突破', '2.32', '18'], ['未突破', '1.60', '36']] }
+      ],
+      '電競': [
+        { mode: 'versus', title: 'Kiwoom DRX vs BNK FearX 誰會勝出？', tag: '電競', currency: 'USDT', time: '07:32:10', image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=120&q=80', options: [['Kiwoom DRX', '1.79', '58', '🎮'], ['BNK FearX', '2.05', '42', '🎮']] },
+        { mode: 'yesno', title: '今晚 LoL 決賽是否打滿五局？', tag: '電競', currency: 'IDR', time: '10:08:19', options: [['會', '2.40', '13'], ['不會', '1.57', '31']] }
+      ],
+      '金融': [
+        { mode: 'yesno', title: '美股今晚開盤後納指是否上漲？', tag: '金融', currency: 'USDT', time: '05:21:00', image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=120&q=80', options: [['上漲', '1.87', '29'], ['下跌', '1.93', '27']] },
+        { mode: 'yesno', title: '黃金本週是否站上 2,600？', tag: '金融', currency: 'MYR', time: '4天 01:18', options: [['是', '1.76', '20'], ['否', '2.14', '15']] },
+        { mode: 'judge', title: '美元指數月底區間預測', tag: '金融', currency: 'USDT', time: '6天 08:40', options: [['高於 104', '1.95', '62'], ['低於 102', '1.82', '48']] }
+      ],
+      '選舉': [
+        { mode: 'yesno', title: '本月地方選舉投票率是否突破 70%？', tag: '選舉', currency: 'USDT', time: '8天 12:00', options: [['突破', '2.05', '12'], ['未突破', '1.78', '16']] },
+        { mode: 'yesno', title: '候選人 A 是否在最新民調領先？', tag: '選舉', currency: 'IDR', time: '2天 22:10', options: [['領先', '1.69', '25'], ['未領先', '2.21', '14']] }
+      ],
+      '全部': []
+    };
+
+    // 初始化收藏集合：從資料中帶 favorite: true 的項目
+    Object.values(MARKET_DATA).flat().forEach(item => {
+      if (item.favorite) favoritedTitles.add(item.title);
+    });
+
+    function calcPercent(options, index) {
+      const counts = options.map(o => parseInt(o[2], 10) || 0);
+      const total = counts.reduce((s, v) => s + v, 0);
+      if (!total) return 0;
+      return Math.round((counts[index] / total) * 100);
+    }
+
+    function pctRing(pct, color = '#21d85a') {
+      const r = 18, cx = 24, cy = 24;
+      const circ = 2 * Math.PI * r;
+      const dash = (pct / 100) * circ;
+      return `
+        <div class="pct-ring-wrap">
+          <svg viewBox="0 0 48 48">
+            <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4"/>
+            <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="4"
+              stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"/>
+          </svg>
+          <div class="pct-ring-label">${pct}%<small>${pct >= 50 ? '是' : '否'}</small></div>
+        </div>`;
+    }
+
+    const MODE_LABELS = { yesno: '單題雙選項型', multi: '多選一型', judge: '主選項＋是/否判定型', versus: '對戰型' };
+
+    function modeTag(item) {
+      const mode = item.mode || 'yesno';
+      return `<span class="mode-tag ${mode}">${MODE_LABELS[mode]}</span>`;
+    }
+
+    const BAR_COLORS = ['#4dabf7','#ff6b6b','#69db7c','#ffd43b','#f783ac'];
+
+    function hoverPreview(item) {
+      // judge 型：顯示每個子題的是/否分佈
+      if (item.mode === 'judge') {
+        const bars = item.options.map(opt => {
+          const pct = parseInt(opt[2], 10) || 0;
+          const noPct = 100 - pct;
+          return `<div style="margin-bottom:8px">
+            <div style="font-size:11px;font-weight:900;color:#c8d5e8;margin-bottom:4px">${opt[0]}</div>
+            <div class="hover-bar-row">
+              <div class="hover-bar-wrap">
+                <div class="hover-bar-fill" style="width:${pct}%;background:#21d85a"></div>
+                <div class="hover-bar-name">是</div>
+              </div>
+              <div class="hover-bar-pct">${pct}%</div>
+            </div>
+            <div class="hover-bar-row">
+              <div class="hover-bar-wrap">
+                <div class="hover-bar-fill" style="width:${noPct}%;background:#ff6b6b"></div>
+                <div class="hover-bar-name">否</div>
+              </div>
+              <div class="hover-bar-pct">${noPct}%</div>
+            </div>
+          </div>`;
+        }).join('');
+        return `<div class="card-hover-preview">
+          <div class="hover-title">${item.title}</div>
+          ${bars}
+        </div>`;
+      }
+
+      const total = item.options.reduce((s, o) => s + (parseInt(o[2], 10) || 0), 0);
+
+      // versus 型加入 draw 選項一起計算
+      const allOpts = item.mode === 'versus' && item.draw
+        ? [...item.options, item.draw]
+        : item.options;
+      const allTotal = allOpts.reduce((s, o) => s + (parseInt(o[2], 10) || 0), 0);
+
+      // 半圓儀表顯示領先選項機率
+      const leadIdx = allOpts.reduce((best, o, i) =>
+        (parseInt(o[2], 10) || 0) > (parseInt(allOpts[best][2], 10) || 0) ? i : best, 0);
+      const leadPct = allTotal ? Math.round((parseInt(allOpts[leadIdx][2], 10) || 0) / allTotal * 100) : 50;
+      const gaugeColor = item.mode === 'versus' ? BAR_COLORS[leadIdx] : '#21d85a';
+
+      const circ = Math.PI * 38;
+      const gauge = `<svg viewBox="0 0 100 100">
+        <path d="M12,50 A38,38 0 0,1 88,50" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="8" stroke-linecap="round"/>
+        <path d="M12,50 A38,38 0 0,1 88,50" fill="none" stroke="${gaugeColor}" stroke-width="8" stroke-linecap="round"
+          stroke-dasharray="${(leadPct/100*circ).toFixed(1)} ${circ.toFixed(1)}" />
+      </svg>`;
+
+      const bars = allOpts.map((opt, i) => {
+        const pct = allTotal ? Math.round((parseInt(opt[2], 10) || 0) / allTotal * 100) : Math.round(100 / allOpts.length);
+        return `<div class="hover-bar-row">
+          <div class="hover-bar-wrap">
+            <div class="hover-bar-fill" style="width:${pct}%;background:${BAR_COLORS[i % BAR_COLORS.length]}"></div>
+            <div class="hover-bar-name">${opt[0]}</div>
+          </div>
+          <div class="hover-bar-pct">${pct}%</div>
+        </div>`;
+      }).join('');
+
+      return `<div class="card-hover-preview">
+        <div class="hover-title">${item.title}</div>
+        <div class="gauge-wrap">${gauge}</div>
+        <div class="gauge-label" style="margin-bottom:8px">${allOpts[leadIdx][0]} · ${leadPct}%</div>
+        ${bars}
+      </div>`;
+    }
+
+    function cardFooter(item) {
+      return `<div class="card-foot">
+        <span style="display:flex;align-items:center;gap:6px">
+          <b class="mini-live">●</b> ${item.tag} · ${item.time}
+        </span>
+        <span class="foot-actions">
+          <button class="eye-btn" title="查看投注分佈" onclick="toggleDistPanel(this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+          <button class="fav-btn ${favoritedTitles.has(item.title) ? 'active' : ''}" title="收藏" onclick="toggleFavorite(this, '${escTitle(item.title)}')" type="button">${favoritedTitles.has(item.title) ? '♥' : '♡'}</button>
+        </span>
+      </div>
+      ${hoverPreview(item)}`;
+    }
+
+    function cardIcon(item) {
+      return `<div class="market-icon" style="flex-shrink:0">${item.image ? `<img src="${item.image}" alt="">` : categoryIcon(item.tag)}</div>`;
+    }
+
+    function renderCardYesno(item) {
+      const pct0 = calcPercent(item.options, 0);
+      const leadPct = pct0 >= 50 ? pct0 : 100 - pct0;
+      const ringColor = pct0 >= 50 ? '#21d85a' : '#ff5555';
+      return `
+        <article class="market-card" data-title="${escTitle(item.title)}">
+          ${modeTag(item)}
+          <div class="card-header">
+            ${cardIcon(item)}
+            <div class="card-header-text">
+              <div class="card-title">${item.title}</div>
+            </div>
+            ${pctRing(leadPct, ringColor)}
+          </div>
+          <div class="market-card-body">
+            <div class="yn-btn-row">
+              <button class="yn-btn yes bet-trigger" data-title="${item.title}" data-opt="${item.options[0][0]}" data-odd="${Number(item.options[0][1])}">是</button>
+              <button class="yn-btn no bet-trigger"  data-title="${item.title}" data-opt="${item.options[1][0]}" data-odd="${Number(item.options[1][1])}">否</button>
+            </div>
+          </div>
+          ${cardFooter(item)}
+        </article>`;
+    }
+
+    function renderCardMulti(item) {
+      return `
+        <article class="market-card" data-title="${escTitle(item.title)}">
+          ${modeTag(item)}
+          <div class="card-header">
+            ${cardIcon(item)}
+            <div class="card-title">${item.title}</div>
+          </div>
+          <div class="market-card-body">
+            <div style="margin-bottom:10px">
+              ${item.options.map(opt => `
+                <div class="option-row bet-trigger" data-title="${item.title}" data-opt="${opt[0]}" data-odd="${Number(opt[1])}">
+                  <div class="option-name">${opt[0]}</div>
+                  <div class="odd">${opt[1]}</div>
+                </div>`).join('')}
+            </div>
+          </div>
+          ${cardFooter(item)}
+        </article>`;
+    }
+
+    function renderCardJudge(item) {
+      return `
+        <article class="market-card" data-title="${escTitle(item.title)}">
+          ${modeTag(item)}
+          <div class="card-header">
+            ${cardIcon(item)}
+            <div class="card-title">${item.title}</div>
+          </div>
+          <div class="market-card-body">
+            <div style="margin-bottom:8px">
+              ${item.options.map(opt => `
+                <div class="judge-row">
+                  <div class="judge-label">${opt[0]}</div>
+                  <div class="judge-pct">${opt[2]}%</div>
+                  <button class="judge-yes-btn bet-trigger" data-title="${item.title}" data-opt="${opt[0]} 是" data-odd="${Number(opt[1])}">是</button>
+                  <button class="judge-no-btn bet-trigger"  data-title="${item.title}" data-opt="${opt[0]} 否" data-odd="${Number(opt[1])}">否</button>
+                </div>`).join('')}
+            </div>
+          </div>
+          ${cardFooter(item)}
+        </article>`;
+    }
+
+    function renderCardVersus(item) {
+      const allOpts = [...item.options, item.draw || ['DRAW','3.0','10']];
+      const pct0 = calcPercent(allOpts, 0);
+      const pct1 = calcPercent(allOpts, 1);
+      const draw = item.draw || ['DRAW', '3.20', '10'];
+      const abbr = name => name.slice(0, 2).toUpperCase();
+      return `
+        <article class="market-card" data-title="${escTitle(item.title)}">
+          ${modeTag(item)}
+          <div class="card-header" style="margin-bottom:6px">
+            ${cardIcon(item)}
+            <div class="card-title">${item.title}</div>
+          </div>
+          <div class="market-card-body">
+            <div style="margin-bottom:2px">
+              <div class="vs-row bet-trigger" data-title="${item.title}" data-opt="${item.options[0][0]}" data-odd="${Number(item.options[0][1])}">
+                <div class="vs-icon">${item.options[0][3] && item.options[0][3].length > 2 ? `<img src="${item.options[0][3]}" alt="">` : (item.options[0][3] || abbr(item.options[0][0]))}</div>
+                <div class="vs-name">${item.options[0][0]}</div>
+                <div class="vs-pct">${pct0}%</div>
+              </div>
+              <div class="vs-row bet-trigger" data-title="${item.title}" data-opt="${item.options[1][0]}" data-odd="${Number(item.options[1][1])}">
+                <div class="vs-icon">${item.options[1][3] && item.options[1][3].length > 2 ? `<img src="${item.options[1][3]}" alt="">` : (item.options[1][3] || abbr(item.options[1][0]))}</div>
+                <div class="vs-name">${item.options[1][0]}</div>
+                <div class="vs-pct">${pct1}%</div>
+              </div>
+            </div>
+            <div class="vs-btn-row">
+              <button class="vs-btn team-a bet-trigger" data-title="${item.title}" data-opt="${item.options[0][0]}" data-odd="${Number(item.options[0][1])}">${item.options[0][0]}</button>
+              <button class="vs-btn bet-trigger" data-title="${item.title}" data-opt="DRAW" data-odd="${Number(draw[1])}">${draw[0]}</button>
+              <button class="vs-btn team-b bet-trigger" data-title="${item.title}" data-opt="${item.options[1][0]}" data-odd="${Number(item.options[1][1])}">${item.options[1][0]}</button>
+            </div>
+          </div>
+          ${cardFooter(item)}
+        </article>`;
+    }
+
+    // ── 排行榜 ──
+    const RANK_COLORS = ['#7c4dff','#ff6b6b','#4dabf7','#69db7c','#ffd43b','#f783ac','#74c0fc','#a9e34b'];
+
+    function avatarBg(i) { return RANK_COLORS[i % RANK_COLORS.length]; }
+
+    // 幣別匯率（相對 USDT，用於換算基準幣別顯示）
+    const CURRENCY_RATE = { USDT: 1, IDR: 16200, CNY: 7.28, VND: 25400, THB: 35.8, MYR: 4.72 };
+
+    // 各盤口帶幣別欄位，vol 為 USDT 基準值，顯示時依選擇幣別換算
+    const RANK_DATA_BY_PERIOD = {
+      '今日': [
+        { title: 'BTC 明日中午前是否突破 120,000？', tag: '加密',    currency: 'USDT', vol: 97881966,  people: 826 },
+        { title: '今晚直播抽獎是否會開出 iPhone？',  tag: '站內活動', currency: 'USDT', vol: 39497600, people: 612 },
+        { title: '週末站內充值人數能否突破 1,000 人？', tag: '突發', currency: 'IDR',  vol: 18420000, people: 484 },
+        { title: 'ETH 本週收盤價是否高於 4,000？',   tag: '金融',    currency: 'USDT', vol: 8660932,   people: 295 },
+        { title: 'Spurs vs Newcastle 誰會贏？',       tag: '運動',    currency: 'MYR',  vol: 5127000,   people: 241 },
+        { title: '2026 美國男子網球公開賽冠軍？',     tag: '運動',    currency: 'THB',  vol: 3840500,   people: 198 },
+        { title: 'Anthropic 下一個神話級模型的發布日期？', tag: '加密', currency: 'CNY', vol: 2500000, people: 156 },
+        { title: 'SOL 今日漲幅是否突破 8%？',         tag: '加密',    currency: 'USDT', vol: 1320000,   people: 98  },
+      ],
+      '每週': [
+        { title: 'BTC 明日中午前是否突破 120,000？', tag: '加密',    currency: 'USDT', vol: 685200000, people: 4820 },
+        { title: '週末站內充值人數能否突破 1,000 人？', tag: '突發', currency: 'IDR',  vol: 110500000, people: 2940 },
+        { title: '2026 美國男子網球公開賽冠軍？',     tag: '運動',    currency: 'THB',  vol: 19200000,  people: 1380 },
+        { title: 'ETH 本週收盤價是否高於 4,000？',   tag: '金融',    currency: 'USDT', vol: 34600000,  people: 1120 },
+        { title: 'Anthropic 下一個神話級模型的發布日期？', tag: '加密', currency: 'CNY', vol: 12500000, people: 820 },
+        { title: '今晚直播抽獎是否會開出 iPhone？',  tag: '站內活動', currency: 'USDT', vol: 8800000,  people: 610 },
+        { title: 'Spurs vs Newcastle 誰會贏？',       tag: '運動',    currency: 'MYR',  vol: 6400000,   people: 480 },
+        { title: 'SOL 今日漲幅是否突破 8%？',         tag: '加密',    currency: 'USDT', vol: 3100000,   people: 320 },
+      ],
+      '每月': [
+        { title: 'BTC 明日中午前是否突破 120,000？', tag: '加密',    currency: 'USDT', vol: 2480000000, people: 18600 },
+        { title: '今晚直播抽獎是否會開出 iPhone？',  tag: '站內活動', currency: 'USDT', vol: 1620000000, people: 12400 },
+        { title: 'ETH 本週收盤價是否高於 4,000？',   tag: '金融',    currency: 'USDT', vol: 910000000,  people: 8200  },
+        { title: '2026 美國男子網球公開賽冠軍？',     tag: '運動',    currency: 'THB',  vol: 580000000,  people: 5600  },
+        { title: 'Spurs vs Newcastle 誰會贏？',       tag: '運動',    currency: 'MYR',  vol: 342000000,  people: 3900  },
+        { title: 'SOL 今日漲幅是否突破 8%？',         tag: '加密',    currency: 'USDT', vol: 198000000,  people: 2800  },
+        { title: 'Anthropic 下一個神話級模型的發布日期？', tag: '加密', currency: 'CNY', vol: 120000000, people: 1900 },
+        { title: '週末站內充值人數能否突破 1,000 人？', tag: '突發', currency: 'IDR',  vol: 88000000,   people: 1400  },
+      ],
+      '全部': [
+        { title: 'BTC 明日中午前是否突破 120,000？', tag: '加密',    currency: 'USDT', vol: 19400000000, people: 142000 },
+        { title: '今晚直播抽獎是否會開出 iPhone？',  tag: '站內活動', currency: 'USDT', vol: 7900000000,  people: 98000  },
+        { title: 'ETH 本週收盤價是否高於 4,000？',   tag: '金融',    currency: 'USDT', vol: 4400000000,  people: 64000  },
+        { title: '2026 美國男子網球公開賽冠軍？',     tag: '運動',    currency: 'THB',  vol: 2900000000,  people: 48000  },
+        { title: 'Spurs vs Newcastle 誰會贏？',       tag: '運動',    currency: 'MYR',  vol: 1800000000,  people: 36000  },
+        { title: 'SOL 今日漲幅是否突破 8%？',         tag: '加密',    currency: 'USDT', vol: 980000000,   people: 24000  },
+        { title: 'Anthropic 下一個神話級模型的發布日期？', tag: '加密', currency: 'CNY', vol: 620000000, people: 18000  },
+        { title: '週末站內充值人數能否突破 1,000 人？', tag: '突發', currency: 'IDR',  vol: 410000000,   people: 14000  },
+      ],
+    };
+
+    // before/after 為 USDT 基準值，顯示時依 winnerCurrencyFilter 換算
+    const SIDEBAR_DATA = {
+      '今日': { label: '今日最高贏利', items: [
+        { name: 'raitest1',   market: 'BTC 明日中午前是否突破 120,000？',    before: 91427,  after: 131062 },
+        { name: 'melody626',  market: 'SOL 今日漲幅是否突破 8%？',           before: 114308, after: 147140 },
+        { name: 'flipad888',  market: 'Spurs vs Newcastle 誰會贏？',          before: 209529, after: 239945 },
+        { name: 'pro77user',  market: '週末站內充值人數能否突破 1,000 人？',  before: 55281,  after: 84916  },
+        { name: 'donthack',   market: 'ETH 本週收盤價是否高於 4,000？',       before: 29854,  after: 42634  },
+      ]},
+      '每週': { label: '本週最高贏利', items: [
+        { name: 'kingbet77',  market: 'BTC 明日中午前是否突破 120,000？',     before: 312000, after: 580000 },
+        { name: 'luckydraw5', market: '2026 美國男子網球公開賽冠軍？',        before: 198000, after: 341000 },
+        { name: 'moonshot21', market: 'ETH 本週收盤價是否高於 4,000？',       before: 88000,  after: 142000 },
+        { name: 'raitest1',   market: 'Spurs vs Newcastle 誰會贏？',          before: 65000,  after: 98000  },
+        { name: 'predmstr',   market: 'SOL 今日漲幅是否突破 8%？',            before: 42000,  after: 61000  },
+      ]},
+      '每月': { label: '本月最高贏利', items: [
+        { name: 'kingbet77',  market: 'BTC 明日中午前是否突破 120,000？',     before: 1200000, after: 2480000 },
+        { name: 'moonshot21', market: '今晚直播抽獎是否會開出 iPhone？',      before: 880000,  after: 1620000 },
+        { name: 'raitest1',   market: 'ETH 本週收盤價是否高於 4,000？',       before: 520000,  after: 910000  },
+        { name: 'luckydraw5', market: '2026 美國男子網球公開賽冠軍？',        before: 340000,  after: 580000  },
+        { name: 'quickwin99', market: 'Spurs vs Newcastle 誰會贏？',          before: 210000,  after: 342000  },
+      ]},
+      '全部': { label: '歷史最高贏利', items: [
+        { name: 'kingbet77',  market: 'BTC 明日中午前是否突破 120,000？',     before: 8200000,  after: 19400000 },
+        { name: 'moonshot21', market: 'ETH 本週收盤價是否高於 4,000？',       before: 5100000,  after: 11200000 },
+        { name: 'predmstr',   market: '今晚直播抽獎是否會開出 iPhone？',      before: 3800000,  after: 7900000  },
+        { name: 'luckydraw5', market: '2026 美國男子網球公開賽冠軍？',        before: 2200000,  after: 4400000  },
+        { name: 'raitest1',   market: 'Spurs vs Newcastle 誰會贏？',          before: 1500000,  after: 2900000  },
+      ]},
+    };
+
+    let currentRankPeriod = '今日';
+
+    // 格式化交易量（依選定幣別換算後顯示）
+    function fmtVol(n, currency = 'USDT') {
+      const rate = CURRENCY_RATE[currency] || 1;
+      const converted = n * rate;
+      if (converted >= 1000000000) return (converted / 1000000000).toFixed(1) + 'B ' + currency;
+      if (converted >= 1000000)    return (converted / 1000000).toFixed(1) + 'M ' + currency;
+      if (converted >= 1000)       return (converted / 1000).toFixed(0) + 'K ' + currency;
+      return converted.toFixed(0) + ' ' + currency;
+    }
+
+    // 格式化贏利金額（依選定幣別換算後顯示）
+    function fmtWinnerAmt(usdt, currency = 'USDT') {
+      const rate = CURRENCY_RATE[currency] || 1;
+      const n = Math.round(usdt * rate);
+      if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+      if (n >= 1000)    return (n / 1000).toFixed(1) + 'K';
+      return n.toLocaleString();
+    }
+
+    let currentRankSort = 'people'; // 'people' | 'vol'
+
+    function renderRanking(period) {
+      if (period) currentRankPeriod = period;
+      const board     = document.getElementById('rankLeaderboard');
+      const winners   = document.getElementById('topWinnersList');
+      const sideTitle = document.getElementById('rankSideTitle');
+      if (!board || !winners) return;
+
+      const cat      = document.getElementById('rankCatFilter')?.value || '全部分類';
+      const currency = document.getElementById('rankCurrencyFilter')?.value || 'USDT';
+      const keyword  = document.getElementById('rankSearchInput')?.value.trim().toLowerCase() || '';
+      const sortKey  = currentRankSort; // 'people' | 'vol'
+
+      let rankData = (RANK_DATA_BY_PERIOD[currentRankPeriod] || RANK_DATA_BY_PERIOD['今日'])
+        .filter(m => m.currency === currency);
+
+      if (cat && cat !== '全部分類') rankData = rankData.filter(m => m.tag === cat);
+      if (keyword) rankData = rankData.filter(m => m.title.toLowerCase().includes(keyword));
+
+      // 排序：依 sortKey 降冪
+      rankData = [...rankData].sort((a, b) => b[sortKey] - a[sortKey]);
+
+      // 欄位標頭：排序中的欄位加上箭頭指示
+      const headPeople = `<div style="text-align:right;cursor:pointer" onclick="setRankSort('people')"
+        style="text-align:right">下注人數${sortKey === 'people' ? ' ↓' : ''}</div>`;
+      const headVol = `<div style="text-align:right;cursor:pointer" onclick="setRankSort('vol')">交易量${sortKey === 'vol' ? ' ↓' : ''}</div>`;
+
+      if (!rankData.length) {
+        board.innerHTML = `<div class="rank-row rank-head"><div>#</div><div>盤口名稱</div>
+          <div style="text-align:right">下注人數${sortKey === 'people' ? ' ↓' : ''}</div>
+          <div style="text-align:right">交易量${sortKey === 'vol' ? ' ↓' : ''}</div></div>
+          <div style="padding:28px;text-align:center;color:var(--muted);font-weight:900">沒有符合條件的盤口</div>`;
+        return;
+      }
+
+      const rows = rankData.map((m, i) => {
+        const numClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+        const icon = categoryIcon(m.tag);
+        return `<div class="rank-row">
+          <div class="rank-num ${numClass}">${i + 1}</div>
+          <div class="rank-user">
+            <div class="rank-avatar" style="background:${avatarBg(i)};font-size:12px">${icon}</div>
+            <div>
+              <div class="rank-name" style="white-space:normal;line-height:1.35">${m.title}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">${m.tag} · ${m.currency}</div>
+            </div>
+          </div>
+          <div class="rank-profit" style="color:#eef4ff;text-align:right">${m.people.toLocaleString()} 人</div>
+          <div class="rank-vol">${fmtVol(m.vol, currency)}</div>
+        </div>`;
+      }).join('');
+
+      board.innerHTML = `<div class="rank-row rank-head">
+        <div>#</div>
+        <div>盤口名稱</div>
+        <div style="text-align:right;cursor:pointer;user-select:none" onclick="setRankSort('people')">下注人數${sortKey === 'people' ? ' ↓' : ''}</div>
+        <div style="text-align:right;cursor:pointer;user-select:none" onclick="setRankSort('vol')">交易量${sortKey === 'vol' ? ' ↓' : ''}</div>
+      </div>${rows}`;
+
+      // 最高贏利側欄
+      const sd = SIDEBAR_DATA[currentRankPeriod] || SIDEBAR_DATA['今日'];
+      if (sideTitle) sideTitle.textContent = '🏆 ' + sd.label;
+      renderWinners();
+    }
+
+    function setRankSort(key) {
+      currentRankSort = key;
+      // 同步更新 seg 按鈕狀態
+      document.querySelectorAll('#rankSortGroup button').forEach(b => {
+        b.classList.toggle('active', b.dataset.sort === key);
+      });
+      renderRanking();
+    }
+
+    function renderWinners() {
+      const winners   = document.getElementById('topWinnersList');
+      if (!winners) return;
+      const currency  = document.getElementById('winnerCurrencyFilter')?.value || 'USDT';
+      const sd = SIDEBAR_DATA[currentRankPeriod] || SIDEBAR_DATA['今日'];
+      winners.innerHTML = sd.items.map((m, i) => {
+        const isMe = m.name === 'raitest1';
+        const displayName = isMe ? m.name : m.name.slice(0, 3) + '***';
+        const shortMarket = m.market.length > 18 ? m.market.slice(0, 18) + '...' : m.market;
+        const bAmt = fmtWinnerAmt(m.before, currency);
+        const aAmt = fmtWinnerAmt(m.after, currency);
+        return `<div class="winner-row">
+          <div style="color:var(--muted);font-size:12px;font-weight:900;min-width:16px">${i + 1}</div>
+          <div class="winner-avatar" style="background:${avatarBg(i)};font-size:12px;font-weight:950;color:#fff">${m.name.slice(0,2).toUpperCase()}</div>
+          <div class="winner-info">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="winner-name">${displayName}</span>
+              <span style="font-size:10px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100px">${shortMarket}</span>
+            </div>
+            <div style="font-size:12px;font-weight:950;margin-top:2px">
+              <span style="color:var(--muted)">${bAmt} ${currency}</span>
+              <span style="color:var(--muted);margin:0 3px">→</span>
+              <span style="color:var(--green)">${aAmt} ${currency}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderMarkets(category = currentTopCategory) {
+      const grid = document.getElementById('marketGrid');
+      if (!grid) return;
+      const keyword = document.getElementById('marketSearchInput')?.value.trim().toLowerCase() || '';
+      let items = category === '全部'
+        ? Object.entries(MARKET_DATA)
+            .filter(([key]) => key !== '全部')
+            .flatMap(([, value]) => value)
+            .filter((item, index, arr) => arr.findIndex(other => other.title === item.title) === index)
+        : (MARKET_DATA[category] || MARKET_DATA['熱門']);
+      items = items.filter(item => {
+        const mainOpts = item.options || [];
+        const peopleTotal = mainOpts.reduce((sum, opt) => sum + (parseInt(opt[2], 10) || 0), 0);
+        const itemStatus = item.status || (peopleTotal < 5 ? 'settled' : 'open');
+        const isShortRange = item.time.includes(':');
+        const matchedKeyword = !keyword || item.title.toLowerCase().includes(keyword);
+        const matchedFavorite = !favoritesOnly || favoritedTitles.has(item.title);
+        const matchedStatus = itemStatus === marketFilters.status;
+        const matchedRange =
+          marketFilters.range === 'all' ||
+          (marketFilters.range === 'day' && isShortRange) ||
+          (marketFilters.range === 'week' && !item.time.includes('8天') && !item.time.includes('9天')) ||
+          (marketFilters.range === 'month');
+        return matchedKeyword && matchedFavorite && matchedStatus && matchedRange;
+      });
+      items = sortMarkets(items);
+      if (!items.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;background:#1b2027;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:28px;text-align:center;color:var(--muted);font-weight:900">沒有符合條件的盤口</div>';
+        return;
+      }
+      grid.innerHTML = items.map(item => {
+        const mode = item.mode || (item.options.length > 2 ? 'multi' : 'yesno');
+        if (mode === 'versus') return renderCardVersus(item);
+        if (mode === 'judge')  return renderCardJudge(item);
+        if (mode === 'multi')  return renderCardMulti(item);
+        return renderCardYesno(item);
+      }).join('');
+    }
+
+    function sortMarkets(items) {
+      return [...items].sort((a, b) => {
+        const peopleA = a.options.reduce((sum, opt) => sum + (parseInt(opt[2], 10) || 0), 0);
+        const peopleB = b.options.reduce((sum, opt) => sum + (parseInt(opt[2], 10) || 0), 0);
+        if (marketFilters.sort === 'newest') return a.title.localeCompare(b.title);
+        if (marketFilters.sort === 'closing') return a.time.length - b.time.length;        return peopleB - peopleA;
+      });
+    }
+
+    function toggleFilterMenu(event, menuId) {
+      event.stopPropagation();
+      document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        if (menu.id !== menuId) menu.classList.add('hidden');
+      });
+      document.getElementById(menuId)?.classList.toggle('hidden');
+    }
+
+    function setDropdownFilter(type, value, label, btn) {
+      marketFilters[type] = value;
+      const labelMap = {
+        sort: 'sortFilterLabel',
+        range: 'rangeFilterLabel',
+        status: 'statusFilterLabel'
+      };
+      const labelEl = document.getElementById(labelMap[type]);
+      if (labelEl) labelEl.textContent = label;
+      btn.closest('.dropdown-menu').querySelectorAll('button').forEach(item => item.classList.remove('active'));
+      btn.classList.add('active');
+      btn.closest('.dropdown-menu').classList.add('hidden');
+      renderMarkets();
+    }
+
+    function toggleFavoritesOnly() {
+      favoritesOnly = !favoritesOnly;
+      const btn = document.getElementById('favoriteToggle');
+      if (btn) {
+        btn.classList.toggle('active', favoritesOnly);
+        btn.textContent = favoritesOnly ? '♥' : '♡';
+      }
+      renderMarkets();
+    }
+
+    function categoryIcon(tag) {
+      const icons = {
+        '加密': '₿',
+        '金融': '$',
+        '運動': '⚑',
+        '電競': '◇',
+        '政治': '政',
+        '選舉': '票',
+        '突發': '!',
+        '最新': '新',
+        '站內活動': '站',
+        '娛樂': '樂',
+        '社群話題': '#',
+      };
+      return icons[tag] || '盤';
+    }
+
+    function optionPercent(options, index) {
+      const counts = options.map(opt => parseInt(opt[2], 10) || 0);
+      const total = counts.reduce((sum, value) => sum + value, 0);
+      if (!total) return 0;
+      return Math.round((counts[index] / total) * 100);
+    }
+
+    function oddChange(opt, index) {
+      const base = Number(opt[3] ?? (index === 0 ? 0.08 : -0.12));
+      const arrow = base >= 0 ? '↗' : '↘';
+      return `${arrow} ${Math.abs(base).toFixed(2)}`;
+    }
+
+    function switchTopCategory(category, btn) {
+      currentTopCategory = category;
+      document.querySelectorAll('.navline button').forEach(item => item.classList.remove('active'));
+      btn.classList.add('active');
+      showContentPanel('markets');
+      renderMarkets(category);
+    }
+
+    function switchPrimaryTab(name, btn) {
+      document.querySelectorAll('.primary-tabs button').forEach(item => item.classList.remove('active'));
+      btn.classList.add('active');
+      showContentPanel(name);
+    }
+
+    function showContentPanel(name) {
+      ['markets','ranking','tickets'].forEach(key => {
+        document.getElementById('tab-' + key).classList.toggle('hidden', key !== name);
+      });
+      document.getElementById('marketCategoryNav')?.classList.toggle('hidden', name !== 'markets');
+    }
+
+    function switchSegment(btn) {
+      const group = btn.closest('.seg');
+      group.querySelectorAll('button').forEach(item => item.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function openBet(title, optionName = '是', odd = 1.65, currency = 'CNY', item = null) {
+      currentOdd = Number(odd) || 1;
+      currentCurrency = memberCurrency;
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('confirmOdd').textContent = currentOdd.toFixed(2);
+      document.getElementById('betCurrency').textContent = memberCurrency;
+      document.getElementById('modalBaseCurrency').textContent = memberCurrency;
+      document.getElementById('walletBalance').textContent = (WALLET_BALANCES[memberCurrency] || '—') + ' ' + memberCurrency;
+
+      // 找對應的 item（若沒傳就從 MARKET_DATA 查）
+      const marketItem = item || Object.values(MARKET_DATA).flat().find(m => m.title === title);
+      const list = document.getElementById('modalOptionList');
+
+      if (marketItem) {
+        const opts = marketItem.mode === 'versus'
+          ? [...marketItem.options, marketItem.draw || ['DRAW', '3.20', '0']]
+          : marketItem.options;
+
+        list.innerHTML = opts.map(opt => {
+          const label = opt[0];
+          const optOdd = Number(opt[1]);
+          const isSelected = label === optionName || optionName.startsWith(label + ' ');
+          return `<div class="modal-opt${isSelected ? ' selected' : ''}"
+            data-label="${label}" data-odd="${optOdd}">
+            <span>${label}</span>
+            <span class="modal-opt-odd">${optOdd.toFixed(2)}</span>
+          </div>`;
+        }).join('');
+      } else {
+        // fallback：只顯示點擊的那個選項
+        list.innerHTML = `<div class="modal-opt selected">
+          <span>${optionName}</span>
+          <span class="modal-opt-odd">${currentOdd.toFixed(2)}</span>
+        </div>`;
+      }
+
+      document.getElementById('betModal').classList.add('show');
+      calcPayout();
+    }
+
+    function selectModalOpt(el, label, odd) {
+      document.querySelectorAll('.modal-opt').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      currentOdd = odd;
+      document.getElementById('confirmOdd').textContent = odd.toFixed(2);
+      calcPayout();
+    }
+
+    function closeBet() {
+      document.getElementById('betModal').classList.remove('show');
+    }
+
+    let ticketCounter = 3; // mock 已有 3 筆
+
+    function confirmBet() {
+      const amount = Number(document.getElementById('amountInput')?.value || 0);
+      if (!amount || amount <= 0) {
+        document.getElementById('amountInput').style.borderColor = '#ff5555';
+        setTimeout(() => document.getElementById('amountInput').style.borderColor = '', 1500);
+        return;
+      }
+
+      const selectedOpt = document.querySelector('.modal-opt.selected');
+      const optLabel = selectedOpt ? selectedOpt.querySelector('span').textContent : '—';
+      const payout = Math.round(amount * currentOdd).toLocaleString();
+      const title = document.getElementById('modalTitle').textContent;
+      const now = new Date();
+      const ticketDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+      const marketItem = Object.values(MARKET_DATA).flat().find(m => m.title === title);
+      ticketCounter++;
+      const ticketId = `CM${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${String(ticketCounter).padStart(4,'0')}`;
+
+      // 寫入注單表格
+      const tbody = document.querySelector('.tickets tbody');
+      const tr = document.createElement('tr');
+      tr.dataset.date = ticketDate;
+      tr.dataset.category = marketItem?.tag || '其他';
+      tr.dataset.status = '進行中';
+      tr.dataset.currency = memberCurrency;
+      tr.innerHTML = `
+        <td>${ticketId}</td>
+        <td>${title}</td>
+        <td>${optLabel}</td>
+        <td>${amount.toLocaleString()}</td>
+        <td>${memberCurrency}</td>
+        <td>${currentOdd.toFixed(2)}</td>
+        <td><span class="status running">進行中</span></td>
+        <td>--</td>`;
+      tbody.insertBefore(tr, tbody.firstChild);
+
+      closeBet();
+
+      // 顯示 toast
+      const toast = document.getElementById('successToast');
+      document.getElementById('toastDesc').textContent = `${optLabel} · ${amount.toLocaleString()} ${memberCurrency} · 預估派彩 ${payout} ${memberCurrency}`;
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(80px)';
+      }, 4000);
+
+      applyTicketFilters();
+    }
+
+    function formatDateInput(date) {
+      return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    }
+
+    function setTicketQuickRange(range, btn) {
+      const today = new Date(2026, 7, 26);
+      const start = new Date(today);
+      const end = new Date(today);
+      if (range === 'yesterday') {
+        start.setDate(today.getDate() - 1);
+        end.setDate(today.getDate() - 1);
+      } else if (range === '7') {
+        start.setDate(today.getDate() - 6);
+      } else if (range === '30') {
+        start.setDate(today.getDate() - 29);
+      }
+      document.getElementById('ticketDateStart').value = formatDateInput(start);
+      document.getElementById('ticketDateEnd').value = formatDateInput(end);
+      document.querySelectorAll('#ticketQuickRange button').forEach(item => item.classList.remove('active'));
+      btn?.classList.add('active');
+      applyTicketFilters();
+    }
+
+    function applyTicketFilters() {
+      const start = document.getElementById('ticketDateStart')?.value || '';
+      const end = document.getElementById('ticketDateEnd')?.value || '';
+      const category = document.getElementById('ticketCategoryFilter')?.value || 'all';
+      const status = document.getElementById('ticketStatusFilter')?.value || 'all';
+      const currency = document.getElementById('ticketCurrencyFilter')?.value || 'all';
+      const tbody = document.querySelector('.tickets tbody');
+      if (!tbody) return;
+
+      let shown = 0;
+      tbody.querySelectorAll('tr:not(.ticket-empty-row)').forEach(row => {
+        const rowDate = row.dataset.date || '';
+        const matched =
+          (!start || rowDate >= start) &&
+          (!end || rowDate <= end) &&
+          (category === 'all' || row.dataset.category === category) &&
+          (status === 'all' || row.dataset.status === status) &&
+          (currency === 'all' || row.dataset.currency === currency);
+        row.classList.toggle('hidden', !matched);
+        if (matched) shown++;
+      });
+
+      let emptyRow = tbody.querySelector('.ticket-empty-row');
+      if (!shown) {
+        if (!emptyRow) {
+          emptyRow = document.createElement('tr');
+          emptyRow.className = 'ticket-empty-row';
+          emptyRow.innerHTML = '<td colspan="8">沒有符合條件的注單</td>';
+          tbody.appendChild(emptyRow);
+        }
+        emptyRow.classList.remove('hidden');
+      } else if (emptyRow) {
+        emptyRow.classList.add('hidden');
+      }
+    }
+
+    function renderOverview(currency = 'CNY') {
+      const data = OVERVIEW_DATA[currency] || OVERVIEW_DATA.CNY;
+      const totalEl = document.getElementById('overviewTotalBet');
+      const pnlEl = document.getElementById('overviewPnl');
+      const winRateEl = document.getElementById('overviewWinRate');
+      const winMetaEl = document.getElementById('overviewWinMeta');
+      const distEl = document.getElementById('overviewDistribution');
+      if (!totalEl || !pnlEl || !winRateEl || !winMetaEl || !distEl) return;
+
+      totalEl.textContent = data.total;
+      pnlEl.textContent = data.pnl;
+      pnlEl.style.color = data.pnlPositive ? 'var(--green)' : 'var(--red)';
+      winRateEl.textContent = data.winRate;
+      winMetaEl.textContent = data.meta;
+      distEl.innerHTML = data.dist.map(([name, amount, pct, color]) => `
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:4px">
+            <span style="color:#eef4ff">${name}</span><span style="color:var(--muted)">${amount} · ${pct}%</span>
+          </div>
+          <div style="height:6px;background:rgba(255,255,255,.08);border-radius:3px">
+            <div style="height:100%;width:${pct}%;background:${color};border-radius:3px"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectChoice(btn, odd) {
+      btn.closest('.bet-options').querySelectorAll('.choice').forEach(item => item.classList.remove('active'));
+      btn.classList.add('active');
+      currentOdd = odd;
+      calcPayout();
+    }
+
+    function setAmount(value) {
+      document.getElementById('amountInput').value = value;
+      calcPayout();
+    }
+
+    function calcPayout() {
+      const amount = Number(document.getElementById('amountInput')?.value || 0);
+      document.getElementById('payoutText').textContent = `${Math.round(amount * currentOdd).toLocaleString()} ${memberCurrency}`;
+    }
+
+    // ── 投注分佈浮層：眼睛按鈕點擊 toggle ──
+    function toggleDistPanel(btn) {
+      const card    = btn.closest('.market-card');
+      const preview = card?.querySelector('.card-hover-preview');
+      if (!preview) return;
+      const isOpen  = preview.classList.contains('visible');
+
+      // 先關閉所有其他浮層
+      document.querySelectorAll('.card-hover-preview.visible').forEach(el => {
+        el.classList.remove('visible');
+        el.closest('.market-card')?.querySelector('.eye-btn')?.classList.remove('active');
+      });
+
+      if (!isOpen) {
+        preview.classList.add('visible');
+        btn.classList.add('active');
+      }
+    }
+
+    // 點卡片以外的地方關閉浮層
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.market-card')) {
+        document.querySelectorAll('.card-hover-preview.visible').forEach(el => {
+          el.classList.remove('visible');
+          el.closest('.market-card')?.querySelector('.eye-btn')?.classList.remove('active');
+        });
+      }
+    });
+
+    // Primary tabs
+    document.querySelectorAll('.primary-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        switchPrimaryTab(btn.dataset.tab, btn);
+        if (btn.dataset.tab === 'ranking') renderRanking();
+      });
+    });
+
+    // Ranking period seg buttons (今日/每週/每月/全部)
+    document.getElementById('rankSegGroup')?.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn || btn.closest('#rankSortGroup')) return;
+      document.querySelectorAll('#rankSegGroup button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderRanking(btn.textContent.trim());
+    });
+
+    // Ranking sort seg buttons (下注人數 / 交易量)
+    document.getElementById('rankSortGroup')?.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      setRankSort(btn.dataset.sort);
+    });
+
+    // Ranking category filter
+    document.getElementById('rankCatFilter')?.addEventListener('change', () => renderRanking());
+
+    // Ranking currency filter (盤口排行)
+    document.getElementById('rankCurrencyFilter')?.addEventListener('change', () => renderRanking());
+
+    // Winner currency filter (最高贏利側欄)
+    document.getElementById('winnerCurrencyFilter')?.addEventListener('change', () => renderWinners());
+
+    // Ranking search
+    document.getElementById('rankSearchInput')?.addEventListener('input', () => renderRanking());
+
+    // Category navline
+    document.querySelectorAll('.navline button').forEach(btn => {
+      btn.addEventListener('click', () => switchTopCategory(btn.dataset.cat, btn));
+    });
+
+    // Search input
+    document.getElementById('marketSearchInput')?.addEventListener('input', () => renderMarkets());
+
+    // Filter pill buttons (toggle dropdown)
+    document.querySelectorAll('.filter-pill[data-menu]').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); toggleFilterMenu(e, btn.dataset.menu); });
+    });
+
+    // Dropdown filter items
+    document.querySelectorAll('.dropdown-menu button[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => setDropdownFilter(btn.dataset.filter, btn.dataset.value, btn.dataset.label, btn));
+    });
+
+    // Favorite toggle
+    document.getElementById('favoriteToggle')?.addEventListener('click', toggleFavoritesOnly);
+
+    function escTitle(t) { return t.replace(/"/g, '&quot;'); }
+
+    // ── 卡片愛心收藏 toggle ──
+    function toggleFavorite(btn, title) {
+      const isNowFav = !btn.classList.contains('active');
+      btn.classList.toggle('active', isNowFav);
+      btn.textContent = isNowFav ? '♥' : '♡';
+      // 同步到 Set
+      if (isNowFav) favoritedTitles.add(title);
+      else favoritedTitles.delete(title);
+      // 小彈跳動畫
+      btn.style.transform = 'scale(1.4)';
+      setTimeout(() => { btn.style.transform = ''; }, 180);
+      // 若在「只看收藏」模式，立即重新篩選
+      if (favoritesOnly) renderMarkets();
+    }
+
+    // Ranking seg buttons
+    document.querySelectorAll('.seg button').forEach(btn => {
+      btn.addEventListener('click', () => switchSegment(btn));
+    });
+
+    // Currency pill
+    document.getElementById('currencyPill')?.addEventListener('click', e => toggleCurrencyMenu(e));
+
+    // Modal close
+    document.getElementById('modalCloseBtn')?.addEventListener('click', closeBet);
+    document.getElementById('betModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeBet(); });
+
+    // Amount grid
+    document.querySelector('.amount-grid')?.addEventListener('click', e => {
+      const amt = e.target.dataset.amount;
+      if (amt) setAmount(Number(amt.replace(',', '')));
+    });
+
+    // Amount input
+    document.getElementById('amountInput')?.addEventListener('input', calcPayout);
+
+    // Overview currency filter
+    document.getElementById('overviewCurrencyFilter')?.addEventListener('click', e => e.stopPropagation());
+    document.getElementById('overviewCurrencyFilter')?.addEventListener('change', e => renderOverview(e.target.value));
+
+    // Ticket filters
+    document.querySelectorAll('#ticketQuickRange button').forEach(btn => {
+      btn.addEventListener('click', () => setTicketQuickRange(btn.dataset.range, btn));
+    });
+    ['ticketDateStart','ticketDateEnd','ticketCategoryFilter','ticketStatusFilter','ticketCurrencyFilter'].forEach(id => {
+      document.getElementById(id)?.addEventListener('change', () => {
+        document.querySelectorAll('#ticketQuickRange button').forEach(item => item.classList.remove('active'));
+        applyTicketFilters();
+      });
+    });
+
+    // Confirm bet button
+    document.getElementById('confirmBetBtn')?.addEventListener('click', confirmBet);
+
+    // Overview panel collapse
+    document.getElementById('overviewHeader')?.addEventListener('click', () => {
+      const body = document.getElementById('overviewBody');
+      const chevron = document.getElementById('overviewChevron');
+      const isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : 'block';
+      chevron.style.transform = isOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
+    });
+
+    // Toast view button
+    document.getElementById('toastViewBtn')?.addEventListener('click', () => {
+      // 立即收起 toast
+      const toast = document.getElementById('successToast');
+      if (toast) { toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(80px)'; }
+      // 關閉投注 modal（若還開著）
+      document.getElementById('betModal')?.classList.add('hidden');
+      document.getElementById('modalOverlay')?.classList.add('hidden');
+      // 切換至「我的注單」Tab
+      const ticketsBtn = document.querySelector('.primary-tabs button[data-tab="tickets"]');
+      if (ticketsBtn) switchPrimaryTab('tickets', ticketsBtn);
+    });
+
+    // Card bet triggers (event delegation)
+    document.getElementById('marketGrid').addEventListener('click', e => {
+      const trigger = e.target.closest('.bet-trigger');
+      if (!trigger) return;
+      const title = trigger.dataset.title;
+      const opt   = trigger.dataset.opt;
+      const odd   = parseFloat(trigger.dataset.odd);
+      if (title && opt) openBet(title, opt, odd);
+    });
+
+    // Modal option list (event delegation)
+    document.getElementById('modalOptionList').addEventListener('click', e => {
+      const opt = e.target.closest('.modal-opt');
+      if (!opt) return;
+      selectModalOpt(opt, opt.querySelector('span').textContent, parseFloat(opt.querySelector('.modal-opt-odd').textContent));
+    });
+
+    renderMarkets();
+    renderOverview();
+  </script>
+</body>
+</html>
